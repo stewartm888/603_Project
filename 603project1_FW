@@ -1,57 +1,45 @@
-
+%%%%%%%%%%%%
+%%% FACE %%%
+%%%%%%%%%%%%
 clc
 data = load('data.mat');
 face = data.face;
-face_neutral=face(:,:,1:3:end);
-face_exp=face(:,:,2:3:end);
-face_illum=face(:,:,3:3:end);
-[d1,d2,n] = size(face_neutral);
-size(face_neutral)
+neutralset=face(:,:,1:3:end);
+smileset=face(:,:,2:3:end);
 
-X1 = zeros(n,d1*d2); %data for neutral faces
-X2 = zeros(n,d1*d2); %data for smiley faces
-for j = 1:n   %200
+x1 = 24;
+x2 = 21;
+z = 200;
 
+zerosize = zeros(200,504);
+f1 = zerosize;
+f2 = zerosize;
 
-    aux = face_neutral(:,:,j);
-    X1(j,:) = aux(:)';
-    aux = face_exp(:,:,j);
-    X2(j,:) = aux(:)';
-    
+for j = 1:z
+    aux = neutralset(:,:,j);
+    f1(j,:) = aux(:)';
+    aux = smileset(:,:,j);
+    f2(j,:) = aux(:)';    
 end
 
-n1 = n;
-n2 = n;
-X = [X1;X2];
+n1 = z;
+n2 = n1;
+X = [f1;f2];
 D1 = 1:n1;
 D2 = n1+1:n1+n2;
-data = load('data.mat');
-face = data.face;
-
-face_neutral=face(:,:,1:3:end);
-
-face_exp=face(:,:,2:3:end);
-
-face_lit=face(:,:,3:3:end);
-[d1,d2,n] = size(face_neutral);
-size(face_neutral)
 
 
-
-
-X1 = zeros(n,d1*d2); %data for neutral faces
-X2 = zeros(n,d1*d2); %data for smiley faces
-for j = 1:n   %200
-    aux = face_neutral(:,:,j);
-    X1(j,:) = aux(:)';
-    aux = face_exp(:,:,j);
-    X2(j,:) = aux(:)';
+for j = 1:z 
+    aux = neutralset(:,:,j);
+    f1(j,:) = aux(:)';
+    aux = smileset(:,:,j);
+    f2(j,:) = aux(:)';
     
 end
 
-n1 = n;
-n2 = n;
-X = [X1;X2];
+n1 = z;
+n2 = z;
+X = [f1;f2];
 D1 = 1:n1;
 D2 = n1+1:n1+n2;
 
@@ -59,19 +47,17 @@ D2 = n1+1:n1+n2;
 
 [U,Sig,V] = svd(X','econ');
 
-nPCA = 20;
-
-Y = X*U(:,1:nPCA);
+Y = X*U(:,1:20);
 
 
 
 
 Ntrain = 150;
-Ntest = n-Ntrain;
+Ntest = z-Ntrain;
 train1 = 1:Ntrain;
-train2 = (n+Ntrain+1):(2*n);
-test1 = (Ntrain+1):n; 
-test2 = (n+Ntrain+1):(2*n);
+train2 = (z+Ntrain+1):(2*z);
+test1 = (Ntrain+1):z; 
+test2 = (z+Ntrain+1):(2*n);
 train_idx = [train1,train2];
 test_idx = [test1,test2];
 Ytrain = Y(train_idx,:);
@@ -103,41 +89,40 @@ w0=0.5*(log(det(S2)/det(S1)))-0.5*(mu1'*iS1*mu1-mu2'*iS2*mu2);
 g=@(x)-0.5*x'*(iS1-iS2)*x+x'*(iS1*mu1-iS2*mu2)+w0;
 
 
-Y3=zeros(n,nPCA);
+Y3=zeros(n,20);
 label=zeros(n,1);
 for j=1:n
-    aux=face_neutral(:,:,j);
-    y=(aux(:)'*U(:,1:nPCA))'; 
+    aux=neutralset(:,:,j);
+    y=(aux(:)'*U(:,1:20))'; 
     Y3(j,:)=y';
     label(j)=sign(g(y));
 end
 iplus=find(label>0);
 iminus=find(label<0);
 fprintf('#iplus=%d, #iminus=%d\n', length(iplus), length(iminus));
-success_Baysian = length(iplus)/200
-[d1, d2,n] = size(face_neutral);
+Baysianpercent = length(iplus)/200
+[x1, x2,n] = size(neutralset);
 
 
-X1 = zeros(n, d1*d2);
-X2 = zeros(n, d1*d2);
+f1 = zeros(n, x1*x2);
+f2 = zeros(n, x1*x2);
 for i = 1:n
-    aux = face_neutral(:,:,i);
-    X1 (i,:) = aux(:)';
-    aux1 = face_exp(:,:,i);
-    X2(i,:) = aux1(:)';
+    aux = neutralset(:,:,i);
+    f1 (i,:) = aux(:)';
+    aux1 = smileset(:,:,i);
+    f2(i,:) = aux1(:)';
 end
 
-n1 = n
-n2 = n
-X = [X1;X2];
+n1 = n;
+n2 = n;
+X = [f1;f2];
 D1 = 1:n1;
-D2 = n1+1:n1+n2
+D2 = n1+1:n1+n2;
 
 
 [U,Sig,V] = svd(X', 'econ');
-nPCA = 20;
 
-Y = X*U(:,1:nPCA);
+Y = X*U(:,1:20);
 
 
 
@@ -160,8 +145,8 @@ Ytest = Y(test_ind,:);
 
 
 
-a = size(Ytrain, 1)
-a
+a = size(Ytrain, 1);
+
 
 knn = 20;
 labels = zeros(length(test_ind),1);
@@ -175,9 +160,9 @@ for i = 1 :length(test_ind)
     knn_neutral = find(kNN <= Ntrain);
     knn_smile = find(kNN > Ntrain);
     if length(knn_neutral) > length(knn_smile)
-        labels(i) = 1
+        labels(i) = 1;
     else
-        labels(i) = -1
+        labels(i) = -1;
     end
 
 
@@ -185,14 +170,13 @@ end
 
 for j= 1: (knn)
     a = kNN(j);
-    a
     subplot (4,5,j)
     imagesc(face(:,:,a))
 end 
 
 
-acc = 0
-sum = 0
+acc = 0;
+sum = 0;
 
 for i= 1:50
     if labels(i)==1
@@ -206,9 +190,9 @@ for i= 51:100
     end
 end
 
-acc = sum/100
+KNNpercent = sum/100
 
-  
+%%% POSE %%%  
 clear
 data=load('pose.mat');
 pose=data.pose;
@@ -222,20 +206,20 @@ imagesc(pose(:,:,1,1));
 
 pose_total = reshape(pose, [48,40,884]);
 
-[d1, d2,n] = size(pose_total);
+[x1, x2,n] = size(pose_total);
 
 
-X1 = zeros(n, d1*d2);
-X2 = zeros(n, d1*d2);
+f1 = zeros(n, x1*x2);
+f2 = zeros(n, x1*x2);
 for i = 1:n
     aux = pose_total(:,:,i);
-    X1 (i,:) = aux(:)';
+    f1 (i,:) = aux(:)';
 
 end
 
 n1 = n;
 n2 = n;
-X = [X1;X2];
+X = [f1;f2];
 D1 = 1:n1;
 D2 = n1+1:n1+n2;
 
@@ -271,44 +255,34 @@ for i=1:68
     end
       
 end
-figure;
-colormap gray;
-subplot (4,5,10)
+
 
 
 ls_a = {};
 for i=1:204
     [U,Sig,V] = svd(Ntest{1,i}','econ');
-    nPCA = 20;
-    Y = Ntest{1,i}*U(:,1:nPCA);
+    Y = Ntest{1,i}*U(:,1:20);
     ls_a = [ls_a, Y];
-    
+
 end
 
 ls_y = {};
 for i=1:680
     [U,Sig,V] = svd(Ntrain{1,i}','econ');
-    nPCA = 20;
-    Y = Ntrain{1,i}*U(:,1:nPCA);
+    Y = Ntrain{1,i}*U(:,1:20);
     ls_y = [ls_y, Y];
     end
 
- 
 test1 = 1:n;
-
-
 train_ind = [train1]; 
 test_ind = [test1];
-
-Ytrain = Y(train_ind,:);%train into PCA
-
-
+Ytrain = Y(train_ind,:);
 knn = 10;
 a_test = zeros(length(ls_y));
 labels = zeros(length(ls_a),1);
 scores = zeros(length(ls_y));
 for i = 1 :length(ls_a)
-    ytest = ls_a{1,i}; %row vectors
+    ytest = ls_a{1,i};
     a = ones(48,20).*ytest;
     for j=1:length(ls_y)
         a_test(j) = sum((ls_y{1,j}-ytest).^2, 'all');
@@ -316,7 +290,6 @@ for i = 1 :length(ls_a)
        
 
     [dsort, isort] = sort(a_test, 'ascend');
-    %dist
     kNN = isort(1:knn);
     potential = zeros(length(knn));
     for k=1:knn
@@ -335,14 +308,3 @@ for i = 1 :length(ls_a)
 end
 
 score = sum(scores, 1);
-
-accuracy = scores/200
-
-
-
-
-
-
-
-
-
