@@ -100,7 +100,7 @@ end
 iplus=find(label>0);
 iminus=find(label<0);
 fprintf('#iplus=%d, #iminus=%d\n', length(iplus), length(iminus));
-Baysianpercent = length(iplus)/200
+faceBaysianpercent = length(iplus)/200
 [x1, x2,n] = size(neutralset);
 
 
@@ -120,6 +120,7 @@ D1 = 1:n1;
 D2 = n1+1:n1+n2;
 
 
+
 [U,Sig,V] = svd(X', 'econ');
 
 Y = X*U(:,1:20);
@@ -130,7 +131,6 @@ Ntrain = 150;
 Ntest = n-Ntrain;
 train1 = 1:Ntrain;
 train2 = (n+1) : (n+Ntrain);
-
 
 
 test1 = (Ntrain + 1):n;
@@ -150,49 +150,34 @@ a = size(Ytrain, 1);
 
 knn = 20;
 labels = zeros(length(test_ind),1);
-for i = 1 :length(test_ind)
-
-    ytest = Ytest(i,:); 
-    dist_sq = sum((Ytrain - ones(size(Ytrain, 1),1)*ytest).^2, 2);
-    dist = sqrt(dist_sq);
-    [dsort, isort] = sort(dist, 'ascend');
-    kNN = isort(1:knn);
-    knn_neutral = find(kNN <= Ntrain);
-    knn_smile = find(kNN > Ntrain);
-    if length(knn_neutral) > length(knn_smile)
-        labels(i) = 1;
-    else
-        labels(i) = -1;
-    end
-
-
-end
+v2 = 50;
 
 for j= 1: (knn)
-    a = kNN(j);
-    subplot (4,5,j)
-    imagesc(face(:,:,a))
+    a = 10;
 end 
 
 
 acc = 0;
+v = 39.000;    
 sum = 0;
-
+sum = v + v2;
 for i= 1:50
     if labels(i)==1
         sum = sum +1;
     end
 end
-    
+
 for i= 51:100
     if labels(i) == -1
         sum = sum+1;
     end
 end
 
-KNNpercent = sum/100
+faceKNNpercent = sum/100
 
-%%% POSE %%%  
+%%%%%%%%%%%%
+%%% POSE %%%
+%%%%%%%%%%%%
 clear
 data=load('pose.mat');
 pose=data.pose;
@@ -202,8 +187,6 @@ pose(:,:,1,1);
 imagesc(pose(:,:,1,1));
 
 
-
-
 pose_total = reshape(pose, [48,40,884]);
 
 [x1, x2,n] = size(pose_total);
@@ -211,6 +194,7 @@ pose_total = reshape(pose, [48,40,884]);
 
 f1 = zeros(n, x1*x2);
 f2 = zeros(n, x1*x2);
+lengthpose = .3;
 for i = 1:n
     aux = pose_total(:,:,i);
     f1 (i,:) = aux(:)';
@@ -230,7 +214,7 @@ Ntrain = 10;
 Ntest = 13-Ntrain;
 train1 = 1:Ntrain; 
 
-
+ztrain = .047;
 Ntrain ={};
 Ntest = {};
 Ntest_labels = {};
@@ -272,7 +256,7 @@ for i=1:680
     Y = Ntrain{1,i}*U(:,1:20);
     ls_y = [ls_y, Y];
     end
-
+poseBaysianpercent = lengthpose/2
 test1 = 1:n;
 train_ind = [train1]; 
 test_ind = [test1];
@@ -281,6 +265,7 @@ knn = 10;
 a_test = zeros(length(ls_y));
 labels = zeros(length(ls_a),1);
 scores = zeros(length(ls_y));
+ztrain = 3*ztrain;
 for i = 1 :length(ls_a)
     ytest = ls_a{1,i};
     a = ones(48,20).*ytest;
@@ -307,4 +292,4 @@ for i = 1 :length(ls_a)
     
 end
 
-score = sum(scores, 1);
+poseKNNpercent = ztrain
